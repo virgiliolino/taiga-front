@@ -41,16 +41,19 @@ WikiNavDirective = ($tgrepo, $log, $location, $confirm, $analytics, $loading, $t
             return $log.error "WikiNavDirective: no ng-model attr is defined"
 
         addWikiLinkPermission = $scope.project.my_permissions.indexOf("add_wiki_link") > -1
+        modifyWikiLinkPermission = $scope.project.my_permissions.indexOf("modify_wiki_link") > -1
         drake = null
 
         render = (wikiLinks) ->
             addWikiLinkPermission = $scope.project.my_permissions.indexOf("add_wiki_link") > -1
             deleteWikiLinkPermission = $scope.project.my_permissions.indexOf("delete_wiki_link") > -1
+            modifyWikiLinkPermission = $scope.project.my_permissions.indexOf("modify_wiki_link") > -1
 
             html = template({
                 wikiLinks: wikiLinks,
                 projectSlug: $scope.projectSlug
                 addWikiLinkPermission: addWikiLinkPermission
+                modifyWikiLinkPermission: modifyWikiLinkPermission
                 deleteWikiLinkPermission: deleteWikiLinkPermission
             })
 
@@ -93,6 +96,33 @@ WikiNavDirective = ($tgrepo, $log, $location, $confirm, $analytics, $loading, $t
                 $el.find(".new").removeClass("hidden")
                 $el.find(".new input").focus()
                 $el.find(".add-button").hide()
+
+            $el.on "click", ".js-modify-link", (event) ->
+                event.preventDefault()
+                event.stopPropagation()
+                target = angular.element(event.currentTarget)
+                linkId = target.parents('.wiki-link').data('id')
+                oldValue = target.parents('.link-title').attr('title')
+                title = $translate.instant("WIKI.MODIFY_LINK_TITLE")
+                subtitle = $translate.instant("WIKI.MODIFY_LINK_SUBTITLE")
+
+                message = $scope.wikiLinks[linkId].title
+
+                $confirm.askValue(title, subtitle, message).then (askResponse) =>
+                    model = $scope.wikiLinks[linkId]
+                    newValue = askResponse.newValue
+                    model['title'] = newValue
+                    promise = $tgrepo.save(model)
+                    promise.then ->
+                        promise = $ctrl.loadWikiLinks()
+                        promise.then ->
+                            askResponse.finish()
+                            render($scope.wikiLinks)
+                        promise.then null, ->
+                            askResponse.finish()
+                    promise.then null, ->
+                        askResponse.finish(false)
+                        $confirm.notify("error")
 
             $el.on "click", ".js-delete-link", (event) ->
                 event.preventDefault()

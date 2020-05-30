@@ -68,6 +68,12 @@
             transition: opacity .2s linear;
             transition-delay: .1s;
         }
+        .modify-wiki-page {
+            cursor: pointer;
+            opacity: 1;
+            transition: opacity .2s linear;
+            transition-delay: .1s;
+        }
         .dragger {
             cursor: move;
             opacity: 1;
@@ -109,4 +115,13 @@
             }
         }
     }
+    .modify-wiki-page {
+        opacity: 0;
+        &:hover {
+            .icon {
+                fill: $red;
+            }
+        }
+    }
+
 }

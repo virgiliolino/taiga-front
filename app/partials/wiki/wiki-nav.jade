@@ -21,6 +21,11 @@ ul.sortable.wiki-link-container
         <% } %>
         a.link-title(title!="{{ link.title }}", href!="{{ link.url }}") {{ link.title }}
 
+        <% if (modifyWikiLinkPermission) { %>
+        a.js-modify-link.modify-wiki-page(title!="{{'WIKI.MODIFY_LINK_TITLE' | translate}}")
+            tg-svg(svg-icon="icon-drag")
+        <% } %>
+        
         <% if (deleteWikiLinkPermission) { %>
         a.js-delete-link.remove-wiki-page(title!="{{'WIKI.DELETE_LINK_TITLE' | translate}}")
             tg-svg(svg-icon="icon-trash")

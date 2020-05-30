@@ -91,6 +91,45 @@ class ConfirmService extends taiga.Service
             subtitle = @translate.instant("NOTIFICATION.ASK_DELETE")
         return @.ask(title, subtitle, message)
 
+    askValue: (title, subtitle, oldValue = '', lightboxSelector=".lightbox-generic-ask") ->
+        defered = @q.defer()
+
+        el = angular.element(lightboxSelector)
+
+        # Render content
+        el.find(".title").text(title)
+        el.find(".subtitle").text(subtitle)
+
+        message = el.find(".message")
+        message.html('')
+        input = "<input type='text' name='new' placeholder='" + oldValue + "'></input>"
+        message.append(angular.element(input))
+        newValueField = el.find("input[name=new]")
+        # Assign event handlers
+        el.on "click.confirm-dialog", "a.button-green", debounce 2000, (event) =>
+            event.preventDefault()
+            target = angular.element(event.currentTarget)
+            currentLoading = @loading()
+                .target(target)
+                .start()
+            defered.resolve {
+
+                newValue: newValueField.val()
+                finish: (ok=true) =>
+                    currentLoading.finish()
+                    if ok
+                        @.hide(el)
+            }
+
+        el.on "click.confirm-dialog", ".button-red", (event) =>
+            event.preventDefault()
+            defered.reject()
+            @.hide(el)
+
+        @lightboxService.open(el)
+
+        return defered.promise
+
     askChoice: (title, subtitle, choices, replacement, warning, lightboxSelector=".lightbox-ask-choice") ->
         defered = @q.defer()
 
